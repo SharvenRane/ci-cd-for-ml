@@ -11,10 +11,8 @@ is the point and it carries straight over to a heavier model.
 
 ## The pipeline
 
-The workflow lives at `ci/ml.yml`. Move it to `.github/workflows/ml.yml` to turn
-it on (GitHub only runs Actions from that folder). It runs the stages in order:
-install, test, train, then the quality gate. `src/train.py` trains and writes
-`outputs/metrics.json`.
+`.github/workflows/ml.yml` runs on every push: install, test, train, then the
+quality gate. `src/train.py` trains and writes `outputs/metrics.json`.
 `src/quality_gate.py` reads those metrics and exits with an error if ROC-AUC or
 F1 fall below the thresholds, which is what stops a regression from reaching
 production.
