@@ -1,91 +1,33 @@
-# Ci Cd For Ml
+# CI/CD for ML
 
-GitHub Actions CI/CD pipeline for ML: train → evaluate → deploy with quality gates
+A continuous integration pipeline for a model, the kind that should gate every
+change before it ships. On each push, GitHub Actions installs, runs the unit
+tests, trains the model, and then checks it against a quality bar. If the model
+comes in under the bar, the run fails and nothing gets promoted.
 
-`ci-cd` `github-actions` `mlops` `automation` `deployment`
+The example trains a classifier on the breast cancer dataset that comes with
+scikit-learn, so it runs in seconds with nothing to download, but the structure
+is the point and it carries straight over to a heavier model.
 
-## Overview
+## The pipeline
 
-This repository implements a complete pipeline for **ci cd for ml**, covering
-data preprocessing, model training, evaluation, and deployment.
+`.github/workflows/ml.yml` runs the stages in order: install, test, train, then
+the quality gate. `src/train.py` trains and writes `outputs/metrics.json`.
+`src/quality_gate.py` reads those metrics and exits with an error if ROC-AUC or
+F1 fall below the thresholds, which is what stops a regression from reaching
+production.
 
-## Features
+## Run it locally
 
-- Clean, modular PyTorch implementation
-- Reproducible experiments with MLflow tracking
-- Comprehensive evaluation with standard benchmarks
-- ONNX export for production deployment
-- Detailed documentation and usage examples
-
-## Installation
-
-```bash
-git clone https://github.com/YOUR_USERNAME/ci-cd-for-ml.git
-cd ci-cd-for-ml
+```
 pip install -r requirements.txt
+pytest tests/ -q
+python src/train.py
+python src/quality_gate.py --metrics outputs/metrics.json
 ```
 
-## Quick Start
+## Tests
 
-```python
-from src.model import Model
-from src.trainer import Trainer
-from src.config import Config
-
-config = Config.from_yaml("configs/default.yaml")
-model = Model(config)
-trainer = Trainer(model, config)
-trainer.train()
-```
-
-## Project Structure
-
-```
-ci-cd-for-ml/
-├── src/
-│   ├── model.py        # Model architecture
-│   ├── dataset.py      # Data loading and preprocessing
-│   ├── trainer.py      # Training loop
-│   ├── evaluate.py     # Evaluation metrics
-│   └── utils.py        # Helper utilities
-├── configs/
-│   └── default.yaml    # Default configuration
-├── notebooks/
-│   └── exploration.ipynb
-├── tests/
-│   └── test_model.py
-├── requirements.txt
-└── README.md
-```
-
-## Results
-
-| Model | Dataset | Metric | Score |
-|-------|---------|--------|-------|
-| Baseline | Standard | Primary | - |
-| Ours | Standard | Primary | - |
-
-## Usage
-
-```bash
-# Train
-python train.py --config configs/default.yaml
-
-# Evaluate
-python evaluate.py --checkpoint checkpoints/best.pth
-
-# Export to ONNX
-python export.py --checkpoint checkpoints/best.pth
-```
-
-## References
-
-- Relevant papers and resources for ci cd for ml
-
-## License
-
-MIT
-
-# update 3
-
-# update 11
+The tests confirm training produces a model and a sensible metric, and that the
+gate genuinely fails when handed weak numbers, so a bad model cannot sneak
+through.
